@@ -1,6 +1,7 @@
 package ob11
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"hash/crc64"
@@ -169,6 +170,14 @@ func (c *Config) preprocessMessageEvent(e *zero.Event) {
 	e.Message = message.ParseMessage(e.NativeMessage)
 	switch {
 	case e.DetailType == "group":
+		ctx := NewCTX("1", "1")
+		log.Infof("%v", GetGroupMemberList(ctx, e.GroupID))
+		_, err := c.Db.Chat.Create().SetGroupID(e.GroupID).SetUserID(e.UserID).SetTime(e.Time).SetMessageType(e.MessageType).SetMessageContent(e.RawMessage).Save(context.Background())
+		if err != nil {
+			log.Errorf("[ob11]ERR: %v", err)
+			return
+		}
+		c.Db.Chat.Query().Where()
 		log.Infof("[ob11] [↓][群(%v)消息][%v] : %v", e.GroupID, e.Sender.String(), e.RawMessage)
 	case e.DetailType == "guild" && e.SubType == "channel":
 		log.Infof("[ob11] [↓][频道(%v)(%v-%v)消息][%v] : %v", e.GroupID, e.GuildID, e.ChannelID, e.Sender.String(), e.Message)
