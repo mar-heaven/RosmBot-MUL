@@ -18,6 +18,7 @@ func (config *Config) Run() {
 	case "WSS":
 		config.Driver = driver.NewWebSocketServer(16, config.URL, config.Token)
 	}
+	botMap[config.BotID] = config
 	config.Driver.Connect()
 	db, err := ent.Open(config.DbDriver, config.Dsn)
 	if err != nil {

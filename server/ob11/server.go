@@ -17,8 +17,7 @@ import (
 	"github.com/wdvxdr1123/ZeroBot/utils/helper"
 )
 
-func (c *Config) process(e *zero.Event, caller zero.APICaller) {
-	log.Debug(*e)
+func (c *Config) process(e *zero.Event) {
 	log.Debug("Message: ", e.RawMessage)
 	switch e.PostType {
 	// 消息事件
@@ -38,9 +37,7 @@ func (c *Config) process(e *zero.Event, caller zero.APICaller) {
 						//	PortraitURI: u.User.PortraitURI,
 					},
 					MsgID: []string{helper.BytesToString(e.RawMessageID)},
-					Def: rosm.H{
-						"caller": caller,
-					},
+					Def:   rosm.H{},
 				},
 				Message: e,
 				Bot:     c,
@@ -62,9 +59,7 @@ func (c *Config) process(e *zero.Event, caller zero.APICaller) {
 						//	PortraitURI: u.User.PortraitURI,
 					},
 					MsgID: []string{helper.BytesToString(e.RawMessageID)},
-					Def: rosm.H{
-						"caller": caller,
-					},
+					Def:   rosm.H{},
 				},
 				Message: e,
 				Bot:     c,
@@ -91,9 +86,7 @@ func (c *Config) process(e *zero.Event, caller zero.APICaller) {
 					// ID: tool.Int64ToString(e.Sender.ID),
 					// Name: e.Sender.NickName,
 				},
-				Def: rosm.H{
-					"caller": caller,
-				},
+				Def: rosm.H{},
 			},
 			Message: e,
 			Bot:     c,
@@ -152,7 +145,7 @@ func (c *Config) processEvent() func([]byte, zero.APICaller) {
 		if event.PostType == "message" {
 			c.preprocessMessageEvent(&event)
 		}
-		go c.process(&event, caller)
+		go c.process(&event)
 	}
 }
 
@@ -170,8 +163,6 @@ func (c *Config) preprocessMessageEvent(e *zero.Event) {
 	e.Message = message.ParseMessage(e.NativeMessage)
 	switch {
 	case e.DetailType == "group":
-		ctx := NewCTX("1", "1")
-		log.Infof("%v", GetGroupMemberList(ctx, e.GroupID))
 		_, err := c.Db.Chat.Create().SetGroupID(e.GroupID).SetUserID(e.UserID).SetTime(e.Time).SetMessageType(e.MessageType).SetMessageContent(e.RawMessage).Save(context.Background())
 		if err != nil {
 			log.Errorf("[ob11]ERR: %v", err)
